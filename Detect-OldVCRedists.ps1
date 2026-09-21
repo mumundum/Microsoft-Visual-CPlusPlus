@@ -14,15 +14,15 @@ function Get-InstalledVCRedists {
     $results = @()
     foreach ($p in $paths) {
         Get-ChildItem -Path $p -ErrorAction SilentlyContinue | ForEach-Object {
-            $props = Get-ItemProperty -Path $_.PsPath -ErrorAction SilentlyContinue
-            if (-not $props) { return }
+                $props = Get-ItemProperty -Path $_.PsPath -ErrorAction SilentlyContinue
+            if (-not $props) { continue }
             $dn = $props.DisplayName
-            if (-not $dn) { return }
+            if (-not $dn) { continue }
             if ($dn -match 'Microsoft Visual C\+\+.*Redistributable') {
                 $ver = $props.DisplayVersion
                 $major = $null
-                if ($ver) {
-                    if ($ver -match '^(\d+)') { $major = [int]$matches[1] }
+                if ($ver -and ($ver -match '^(\d+)')) {
+                    $major = [int]$matches[1]
                 } else {
                     if ($dn -match '2005') { $major = 8 }
                     elseif ($dn -match '2008') { $major = 9 }
