@@ -23,24 +23,30 @@ function Get-InstalledVCRedists {
         Get-ChildItem -Path $p -ErrorAction SilentlyContinue | ForEach-Object {
             $props = Get-ItemProperty -Path $_.PsPath -ErrorAction SilentlyContinue
             if (-not $props) { return }
-            $dn = $props.DisplayName
-            if (-not $dn) { return }
-            if ($dn -match 'Microsoft Visual C\+\+.*Redistributable') {
-                $ver = $props.DisplayVersion
+
+            $name = $props.DisplayName
+            if (-not $name) { $name = $props.ProductName }
+            if (-not $name) { return }
+
+            if ($name -match 'Microsoft Visual C\+\+.*Redistributable') {
+                $version = $props.DisplayVersion
+                if (-not $version) { $version = $props.Version }
+
                 $major = $null
-                if ($ver) {
-                    if ($ver -match '^(\d+)') { $major = [int]$matches[1] }
+                if ($version) {
+                    if ($version -match '^(\d+)') { $major = [int]$matches[1] }
                 } else {
-                    if ($dn -match '2005') { $major = 8 }
-                    elseif ($dn -match '2008') { $major = 9 }
-                    elseif ($dn -match '2010') { $major = 10 }
-                    elseif ($dn -match '2012') { $major = 11 }
-                    elseif ($dn -match '2013') { $major = 12 }
+                    if ($name -match '2005') { $major = 8 }
+                    elseif ($name -match '2008') { $major = 9 }
+                    elseif ($name -match '2010') { $major = 10 }
+                    elseif ($name -match '2012') { $major = 11 }
+                    elseif ($name -match '2013') { $major = 12 }
                 }
+
                 if ($major -and $major -lt 11) {
                     $results += [PSCustomObject]@{
-                        DisplayName = $dn
-                        DisplayVersion = $props.DisplayVersion
+                        DisplayName = $name
+                        DisplayVersion = $version
                         UninstallString = $props.UninstallString
                         RegistryKey = $_.PsPath
                     }
@@ -51,9 +57,9 @@ function Get-InstalledVCRedists {
     return $results
 }
 
-$found = Get-InstalledVCRedists
-if (-not $found -or $found.Count -eq 0) {
-    Log "No pre-2012 Visual C++ redistributables found."
+$found = @(Get-InstalledVCRedists)
+if ($found.Count -eq 0) {
+    Log "Compliant: No pre-2012 Visual C++ redistributables found."
     exit 0
 }
 
