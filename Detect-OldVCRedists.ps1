@@ -1,9 +1,9 @@
-<#
+﻿<#
 .SYNOPSIS
-Detect installed Microsoft Visual C++ Redistributables with major version < 11 (pre-2012).
+Detects pre-2012 Microsoft Visual C++ redistributables.
 
-Usage: Use this script as the "Detection script" in Intune Proactive Remediations.
-Return: exits with code 1 if any pre-2012 redistributables are found, otherwise exits 0.
+Usage: Use this script as the "Detection script" paired with Remediate-OldVCRedists.ps1 in Intune Remediations. Run in 64-bit PowerShell as SYSTEM.
+Return: exits with code 0 when no pre-2012 redistributables are found and code 1 when any are found.
 #>
 
 function Get-InstalledVCRedists {
@@ -28,7 +28,8 @@ function Get-InstalledVCRedists {
                 $major = $null
                 if ($version) {
                     if ($version -match '^(\d+)') { $major = [int]$matches[1] }
-                } else {
+                }
+                else {
                     if ($name -match '2005') { $major = 8 }
                     elseif ($name -match '2008') { $major = 9 }
                     elseif ($name -match '2010') { $major = 10 }
@@ -38,10 +39,10 @@ function Get-InstalledVCRedists {
 
                 if ($major -and $major -lt 11) {
                     $results += [PSCustomObject]@{
-                        DisplayName = $name
-                        DisplayVersion = $version
+                        DisplayName     = $name
+                        DisplayVersion  = $version
                         UninstallString = $props.UninstallString
-                        RegistryKey = $_.PsPath
+                        RegistryKey     = $_.PsPath
                     }
                 }
             }
@@ -55,7 +56,8 @@ if ($found.Count -gt 0) {
     $versionSummary = ($found | ForEach-Object { $_.DisplayVersion } | Sort-Object -Unique | ForEach-Object { "VC++ $($_)" }) -join '; '
     Write-Output "Non-Compliant: $versionSummary"
     exit 1
-} else {
+}
+else {
     Write-Output "Compliant: No pre-2012 Visual C++ redistributables found."
     exit 0
 }

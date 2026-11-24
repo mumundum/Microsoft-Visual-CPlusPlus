@@ -1,9 +1,9 @@
-<#
+﻿<#
 .SYNOPSIS
-Silently uninstall Microsoft Visual C++ Redistributables with major version < 11 (pre-2012).
+Removes pre-2012 Microsoft Visual C++ redistributables.
 
-Usage: Use this script as the "Remediation script" in Intune Proactive Remediations.
-Runs as System; logs to C:\Windows\Temp\Remediate-OldVCRedists.log
+Usage: Use this script as the "Remediation script" paired with Detect-OldVCRedists.ps1 in Intune Remediations. Run in 64-bit PowerShell as SYSTEM.
+Return: exits with code 0 when remediation succeeds and code 1 if one or more uninstall attempts fail.
 #>
 
 $LogFile = 'C:\Windows\Temp\Remediate-OldVCRedists.log'
@@ -35,7 +35,8 @@ function Get-InstalledVCRedists {
                 $major = $null
                 if ($version) {
                     if ($version -match '^(\d+)') { $major = [int]$matches[1] }
-                } else {
+                }
+                else {
                     if ($name -match '2005') { $major = 8 }
                     elseif ($name -match '2008') { $major = 9 }
                     elseif ($name -match '2010') { $major = 10 }
@@ -45,10 +46,10 @@ function Get-InstalledVCRedists {
 
                 if ($major -and $major -lt 11) {
                     $results += [PSCustomObject]@{
-                        DisplayName = $name
-                        DisplayVersion = $version
+                        DisplayName     = $name
+                        DisplayVersion  = $version
                         UninstallString = $props.UninstallString
-                        RegistryKey = $_.PsPath
+                        RegistryKey     = $_.PsPath
                     }
                 }
             }
