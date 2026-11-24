@@ -52,9 +52,8 @@ function Get-InstalledVCRedists {
 
 $found = @(Get-InstalledVCRedists)
 if ($found.Count -gt 0) {
-    $versions = $found | ForEach-Object { $_.DisplayName + ' ' + $_.DisplayVersion }
-    Write-Output "Non-Compliant: Pre-2012 Visual C++ redistributables detected."
-    $versions | ForEach-Object { Write-Output $_ }
+    $versionSummary = ($found | ForEach-Object { $_.DisplayVersion } | Sort-Object -Unique | ForEach-Object { "VC++ $($_)" }) -join '; '
+    Write-Output "Non-Compliant: $versionSummary"
     exit 1
 } else {
     Write-Output "Compliant: No pre-2012 Visual C++ redistributables found."
